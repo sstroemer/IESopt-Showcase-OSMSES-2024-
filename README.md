@@ -6,5 +6,6 @@ This submission is based on [IESopt](https://github.com/ait-energy/IESopt), _Int
 
 ## Included files
 - `model/`: folder containing the showcase model
+- `model/README.md`: see here for pointers to specific parts of the model
 - `paper_v1.pdf`: initial submission
 - `paper_long_version.pdf`: long version of the initial submission, containing additional material
