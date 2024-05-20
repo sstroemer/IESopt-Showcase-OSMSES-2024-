@@ -1,0 +1,50 @@
+mo_mode: "null"
+mo_terms: "null"
+mo_settings: "null"
+
+el_type: null
+
+grid_cost_energy_buy: 35.55
+grid_cost_energy_sell: 8.27
+grid_cost_power: 5051.18
+grid_limit: 20
+fixed_grid_connection_power: -1
+
+methane_substitution: null
+methane_substitution_cost: 26.91
+
+acdc_total_capex: 28083.93
+acdc_eta: 0.9
+
+bess_total_capex: 52477.89
+bess_c_charge: 0.1
+bess_c_discharge: 0.3
+bess_eta: 0.8944272
+bess_loss: 0.000841
+bess_n_cycles_per_year: 425
+bess_max: 25
+
+h2storage_total_capex: 1532.92
+h2storage_c_charge: 0.125
+h2storage_c_discharge: 0.25
+h2storage_max: 185                      # avg. 24h demand
+
+pemel_total_capex: 56860.63
+pemel_eta: 0.59
+pemel_min_load: 0.05
+pemel_operating_hours_pa: 5000
+
+ael_total_capex: 59405.32
+ael_eta: 0.59
+ael_min_load: 0.20
+ael_operating_hours_pa: 5000
+
+pv_total_capex: 30103.08
+pv_vom: 0.0
+pv_p_nom_min: 0
+pv_p_nom_max: 20
+
+wind_total_capex: 100208.92
+wind_vom: 1.98
+wind_p_nom_min: 0
+wind_p_nom_max: 20

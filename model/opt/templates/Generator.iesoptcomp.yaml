@@ -1,0 +1,22 @@
+parameters:
+  total_capex: null
+  vom: null
+  p_nom_min: null
+  p_nom_max: null
+  node_to: null
+  carrier: null
+  alpha: null
+
+components:
+  generator:
+    type: Unit
+    outputs: {<carrier>: <node_to>}
+    conversion: ~ -> 1 <carrier>
+    capacity: <p_nom_min> + <self>.invest:value out:<carrier>
+    marginal_cost: <vom> per out:<carrier>
+    availability_factor: <alpha>
+  
+  invest:
+    type: Decision
+    ub: <p_nom_max> - <p_nom_min>
+    cost: <total_capex>

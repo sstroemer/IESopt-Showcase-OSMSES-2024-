@@ -1,0 +1,212 @@
+# ::: ============================================================================================================ ::: #
+# ::: SECTION | MAIN CONFIGURATION                                                                                 ::: #
+# ::: ============================================================================================================ ::: #
+parameters: global.iesoptparam.yaml
+
+config:
+  name:
+    model: osmses
+    scenario: draft_$TIME$
+  # ------------------------------------------------------------------------------------------------------------------ #
+  optimization:
+    problem_type: MILP #+MO
+    snapshots:
+      count: 4380
+      weights: 2.0
+    objectives:
+      grid_connection_power: []
+      grid_connection_power_cost: []
+      grid_connection_energy_cost: [gridconn_buy.obj.cost, gridconn_sell.obj.cost]
+      external_energy: [supplier_buy.exp.value, ch4_substitution.var.flow]
+      wind_invest: []
+      pv_invest: []
+      storage_invest: []
+      el_invest: []
+    # multiobjective:
+    #   mode: <mo_mode>
+    #   terms: <mo_terms>
+    #   settings: <mo_settings>
+    solver:
+      name: highs
+      attributes:
+        primal_feasibility_tolerance: 0.001
+        dual_feasibility_tolerance: 0.001
+        mip_feasibility_tolerance: 0.001
+        mip_rel_gap: 0.025
+  # ------------------------------------------------------------------------------------------------------------------ #
+  files:
+   data: data_2h.csv
+  # ------------------------------------------------------------------------------------------------------------------ #
+  results:
+    enabled: true
+    memory_only: true
+  # ------------------------------------------------------------------------------------------------------------------ #
+  paths:
+    files: data/timeseries
+    results: out/
+    templates: templates/
+
+addons:
+  fix_obj:
+    el_type: <el_type>
+  grid:
+    grid_cost: <grid_cost_power>
+    fixed_grid_connection_power: <fixed_grid_connection_power>
+  uc:
+    el_type: <el_type>
+    pemel_min_load: <pemel_min_load>
+    pemel_oh: <pemel_operating_hours_pa>
+    ael_min_load: <ael_min_load>
+    ael_oh: <ael_operating_hours_pa>
+  cycles:
+    n_cycles_per_year: <bess_n_cycles_per_year>
+
+# ::: ------------------------------------------------------------------------------------------------------------ ::: #
+# ::: SECTION | ENERGY CARRIERS                                                                                    ::: #
+# ::: ------------------------------------------------------------------------------------------------------------ ::: #
+carriers:
+  ac: {}            # MW | MWh
+  dc: {}            # MW | MWh
+  hydrogen: {}      # MW | MWh
+
+# ::: ------------------------------------------------------------------------------------------------------------ ::: #
+# ::: SECTION | MODEL COMPONENTS                                                                                   ::: #
+# ::: ------------------------------------------------------------------------------------------------------------ ::: #
+components:
+  public_grid:
+    type: Node
+    carrier: ac
+  
+  supplier_buy:
+    type: Profile
+    carrier: ac
+    node_to: public_grid
+    mode: create
+    cost: price@data + <grid_cost_energy_buy>
+  
+  supplier_sell:
+    type: Profile
+    carrier: ac
+    node_from: public_grid
+    mode: destroy
+    cost: (-1)*price@data + <grid_cost_energy_sell>
+  
+  gridconn_buy:
+    type: Connection
+    node_from: public_grid
+    node_to: grid_ac
+    lb: 0
+    ub: <grid_limit>
+    cost: <grid_cost_energy_buy>
+
+  gridconn_sell:
+    type: Connection
+    node_from: grid_ac
+    node_to: public_grid
+    lb: 0
+    ub: <grid_limit>
+    cost: <grid_cost_energy_sell>
+
+  ##
+
+  grid_h2:
+    type: Node
+    carrier: hydrogen
+  
+  grid_h2_demand:
+    type: Node
+    carrier: hydrogen
+
+  grid_ac:
+    type: Node
+    carrier: ac
+
+  grid_pv:
+    type: Node
+    carrier: dc
+  
+  grid_bess:
+    type: Node
+    carrier: dc
+
+  grid_el:
+    type: Node
+    carrier: dc
+  
+  ##
+
+  acdc_pv:
+    type: ACDC
+    node_from: grid_ac
+    node_to: grid_pv
+
+  acdc_bess:
+    type: ACDC
+    node_from: grid_ac
+    node_to: grid_bess
+  
+  acdc_el:
+    type: ACDC
+    node_from: grid_ac
+    node_to: grid_el
+
+  ##
+
+  pv:
+    type: Generator
+    node_to: grid_pv
+    carrier: dc
+    p_nom_min: <pv_p_nom_min>
+    p_nom_max: <pv_p_nom_max>
+    vom: <pv_vom>
+    total_capex: <pv_total_capex>
+    alpha: pv@data
+
+  wind:
+    type: Generator
+    node_to: grid_ac
+    carrier: ac
+    p_nom_min: <wind_p_nom_min>
+    p_nom_max: <wind_p_nom_max>
+    vom: <wind_vom>
+    total_capex: <wind_total_capex>
+    alpha: wind@data
+  
+  bess:
+    type: Battery
+  
+  pemel:
+    type: EL
+    enabled: <el_type> == PEMEL
+    eta: <pemel_eta>
+    total_capex: <pemel_total_capex>
+
+  ael:
+    type: EL
+    enabled: <el_type> == AEL
+    eta: <ael_eta>
+    total_capex: <ael_total_capex>
+
+  h2_storage:
+    type: H2Storage
+  
+  demand:
+    type: Profile
+    carrier: hydrogen
+    node_from: grid_h2_demand
+    value: demand@data
+
+  ch4_amount:
+    type: Node
+    carrier: hydrogen
+    has_state: true
+    state_lb: 0
+    state_initial: <methane_substitution>
+    state_cyclic: disabled
+  
+  ch4_substitution:
+    type: Connection
+    node_from: ch4_amount
+    node_to: grid_h2_demand
+    lb: 0
+    cost: <methane_substitution_cost>

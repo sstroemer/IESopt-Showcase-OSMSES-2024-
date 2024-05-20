@@ -1,0 +1,20 @@
+parameters:
+  total_capex: null
+  node_from: grid_el
+  node_to: grid_h2
+  eta: null
+
+components:
+  electrolysis:
+    type: Unit
+    inputs: {dc: <node_from>}
+    outputs: {hydrogen: <node_to>}
+    conversion: 1 dc -> <eta> hydrogen
+    capacity: <self>.invest:value in:dc
+    # Note: UC is handled in an Addon to showcase that.
+  
+  invest:
+    type: Decision
+    cost: <total_capex>
+    lb: 0
+    ub: 250

@@ -1,0 +1,23 @@
+parameters:
+  node_from: null
+  node_to: null
+
+components:
+  acdc:
+    type: Unit
+    inputs: {ac: <node_from>}
+    outputs: {dc: <node_to>}
+    conversion: 1 ac -> <acdc_eta> dc
+    capacity: <self>.invest:value out:dc
+
+  dcac:
+    type: Unit
+    inputs: {dc: <node_to>}
+    outputs: {ac: <node_from>}
+    conversion: 1 dc -> <acdc_eta> ac
+    capacity: <self>.invest:value in:dc
+
+  invest:
+    type: Decision
+    cost: <acdc_total_capex>
+    ub: 1000

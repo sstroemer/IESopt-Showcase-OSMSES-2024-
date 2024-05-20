@@ -1,0 +1,31 @@
+parameters:
+  node_from: grid_h2
+  node_to: grid_h2_demand
+
+components:
+  store:
+    type: Node
+    carrier: hydrogen
+    has_state: true
+    state_lb: 0
+    state_ub: 0.9 * <self>.invest:value
+  
+  invest:
+    type: Decision
+    cost: <h2storage_total_capex>
+    lb: 0
+    ub: <h2storage_max>
+  
+  charge:
+    type: Unit
+    inputs: {hydrogen: <node_from>}
+    outputs: {hydrogen: <self>.store}
+    conversion: 1 hydrogen -> 1 hydrogen
+    capacity: <h2storage_c_charge> * <self>.invest:value in:hydrogen
+  
+  discharge:
+    type: Unit
+    inputs: {hydrogen: <self>.store}
+    outputs: {hydrogen: <node_to>}
+    conversion: 1 hydrogen -> 1 hydrogen
+    capacity: <h2storage_c_discharge> * <self>.invest:value out:hydrogen

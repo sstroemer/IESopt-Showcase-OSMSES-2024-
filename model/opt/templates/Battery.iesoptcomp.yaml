@@ -1,0 +1,33 @@
+parameters:
+  node: grid_bess
+
+components:
+  # Lead-acid battery life is highly dependent on DOD where typically the battery is cycled between 50% and 80%
+  # https://www.pnnl.gov/sites/default/files/media/file/LeadAcid_Methodology.pdf
+  store:
+    type: Node
+    carrier: dc
+    has_state: true
+    state_lb: 0
+    state_ub: 0.5 * <self>.invest:value
+    state_percentage_loss: <bess_loss>
+  
+  invest:
+    type: Decision
+    cost: <bess_total_capex>
+    lb: 0
+    ub: <bess_max>
+  
+  charge:
+    type: Unit
+    inputs: {dc: <node>}
+    outputs: {dc: <self>.store}
+    conversion: 1 dc -> <bess_eta> dc
+    capacity: <bess_c_charge> * <self>.invest:value in:dc
+  
+  discharge:
+    type: Unit
+    inputs: {dc: <self>.store}
+    outputs: {dc: <node>}
+    conversion: 1 dc -> <bess_eta> dc
+    capacity: <bess_c_discharge> * <self>.invest:value out:dc
